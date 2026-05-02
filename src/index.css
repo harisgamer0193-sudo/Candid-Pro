@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  :root {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #1a1c20;
+    --text-secondary: #4a4c52;
+    --border-color: rgba(0, 0, 0, 0.05);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+  }
+
+  .dark {
+    --bg-primary: #030303;
+    --bg-secondary: #0e0f11;
+    --text-primary: #e0e0e0;
+    --text-secondary: #8e9299;
+    --border-color: rgba(255, 255, 255, 0.05);
+    --glass-bg: rgba(15, 16, 19, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.05);
+  }
+
+  body {
+    @apply transition-colors duration-500 bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased;
+  }
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-gold {
+  background: rgba(255, 215, 0, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.noise {
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  filter: contrast(150%) brightness(1000%);
+}
+
+.shutter-flash {
+  animation: flash 0.4s ease-out forwards;
+}
+
+@keyframes flash {
+  0% { background: white; opacity: 0.8; }
+  100% { background: transparent; opacity: 0; }
+}
