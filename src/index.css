@@ -32,6 +32,11 @@
   }
 }
 
+::selection {
+  background: #FFD700;
+  color: black;
+}
+
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);

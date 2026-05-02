@@ -69,35 +69,6 @@ const BackgroundGrid = ({ isDark }: { isDark: boolean }) => {
   );
 };
 
-const CustomCursor = () => {
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const springConfig = { damping: 25, stiffness: 700 };
-  const cursorXSpring = useSpring(cursorX, springConfig);
-  const cursorYSpring = useSpring(cursorY, springConfig);
-
-  useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-    };
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
-  }, [cursorX, cursorY]);
-
-  return (
-    <motion.div
-      className="fixed top-0 left-0 w-8 h-8 border border-[#FFD700] rounded-full pointer-events-none z-[9999] mix-blend-difference hidden md:block"
-      style={{
-        translateX: cursorXSpring,
-        translateY: cursorYSpring,
-        x: "-50%",
-        y: "-50%",
-      }}
-    />
-  );
-};
-
 const MagneticButton = ({ children, className, onClick, disabled }: { children: React.ReactNode, className?: string, onClick?: () => void, disabled?: boolean }) => {
   const ref = useRef<HTMLButtonElement>(null);
   const x = useMotionValue(0);
@@ -138,10 +109,36 @@ const MagneticButton = ({ children, className, onClick, disabled }: { children: 
 export default function App() {
   const [description, setDescription] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [analysisStatus, setAnalysisStatus] = useState('');
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
+
+  const statusMessages = [
+    "Initializing neural core...",
+    "Scanning photonic data...",
+    "Calibrating lens parameters...",
+    "Reconstructing scene lighting...",
+    "Detecting raw textures...",
+    "Evaluating background clutter...",
+    "Finalizing raw description..."
+  ];
+
+  useEffect(() => {
+    let interval: any;
+    if (isAnalyzing) {
+      let i = 0;
+      setAnalysisStatus(statusMessages[0]);
+      interval = setInterval(() => {
+        i = (i + 1) % statusMessages.length;
+        setAnalysisStatus(statusMessages[i]);
+      }, 1000);
+    } else {
+      setAnalysisStatus("");
+    }
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
   const [isDark, setIsDark] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -280,16 +277,22 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between py-5 px-8 glass rounded-[2rem] border border-black/10 dark:border-white/10"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 group">
             <motion.div 
-              whileHover={{ rotate: 180, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              whileHover={{ rotate: 90, scale: 1.1, backgroundColor: "black", color: "#FFD700" }}
+              transition={{ type: "spring", stiffness: 400 }}
               className="w-10 h-10 rounded-2xl bg-[#FFD700] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.3)] transition-all"
             >
-              <Camera className="w-5 h-5 text-black" />
+              <Camera className="w-5 h-5 transition-colors" />
             </motion.div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tighter text-xl leading-none text-[var(--text-primary)]">NANO BANANA</span>
+              <motion.span 
+                initial={{ letterSpacing: "0em" }}
+                whileHover={{ letterSpacing: "0.1em" }}
+                className="font-bold tracking-tighter text-xl leading-none text-[var(--text-primary)] cursor-default"
+              >
+                LUMEN NANO
+              </motion.span>
               <span className="text-[8px] font-mono tracking-[0.4em] text-[var(--text-secondary)] uppercase">PRO PHOTOGRAPHY</span>
             </div>
           </div>
@@ -350,7 +353,7 @@ export default function App() {
             transition={{ delay: 0.2 }}
             className="text-xl text-[var(--text-secondary)] max-w-2xl font-light leading-relaxed"
           >
-            The world doesn't need more filters. Nano Banana engineers precision prompts for raw, candid, unpolished photography.
+            The world doesn't need more filters. Lumen Nano engineers precision prompts for raw, candid, unpolished photography.
           </motion.p>
         </header>
 
@@ -465,6 +468,27 @@ export default function App() {
                         className="w-full h-full relative"
                       >
                         <img src={selectedImage} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-[3s]" />
+                        {isAnalyzing && (
+                          <>
+                            <motion.div 
+                              initial={{ top: "0%" }}
+                              animate={{ top: "100%" }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                              className="absolute left-0 right-0 h-1 bg-[#FFD700] shadow-[0_0_15px_#FFD700] z-10"
+                            />
+                            <div className="absolute inset-x-0 bottom-10 flex justify-center z-20">
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="px-4 py-2 bg-black/80 border border-[#FFD700]/30 rounded-full backdrop-blur-md"
+                              >
+                                <span className="text-[10px] font-mono text-[#FFD700] uppercase tracking-[0.2em]">
+                                  {analysisStatus}
+                                </span>
+                              </motion.div>
+                            </div>
+                          </>
+                        )}
                         <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-500 backdrop-blur-md">
                           <motion.div whileHover={{ scale: 1.1 }} className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mb-4 border border-white/20">
                             <Upload className="w-6 h-6 text-white" />
@@ -637,7 +661,7 @@ export default function App() {
                     </div>
                     <div className="px-6 py-4 glass-gold rounded-[1.5rem] border border-[#FFD700]/20 flex flex-col gap-1 min-w-[140px]">
                       <span className="text-[9px] font-bold text-[#FFD700]/60 uppercase tracking-widest">Engine</span>
-                      <span className="text-xs font-mono text-[#FFD700] uppercase tracking-tighter">NANO_PRO_V2</span>
+                      <span className="text-xs font-mono text-[#FFD700] uppercase tracking-tighter">LUMEN_PRO_V2</span>
                     </div>
                   </div>
                 </div>
@@ -658,7 +682,7 @@ export default function App() {
               whileHover={{ letterSpacing: "1.2em" }}
               className="text-base font-bold text-[var(--text-primary)] uppercase tracking-[0.8em] transition-all duration-700"
             >
-              NANO BANANA LABS
+              LUMEN NANO LABS
             </motion.h3>
             <p className="text-[10px] font-mono text-[var(--text-secondary)] opacity-40 uppercase tracking-[0.3em] max-w-md mx-auto leading-loose">
               ENGINEERING RAW PHOTOGRAPHY AESTHETICS THROUGH ADVANCED GENERATIVE PHOTONIC CALIBRATION.
@@ -675,8 +699,6 @@ export default function App() {
           </div>
         </footer>
       </div>
-
-      <CustomCursor />
       
       {/* Noise Overlay */}
       <div className="fixed inset-0 pointer-events-none z-[100] opacity-[0.03] noise hidden md:block" />
