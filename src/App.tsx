@@ -108,6 +108,7 @@ const MagneticButton = ({ children, className, onClick, disabled }: { children: 
 
 export default function App() {
   const [description, setDescription] = useState('');
+  const [negativePrompt, setNegativePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [analysisStatus, setAnalysisStatus] = useState('');
   const [copied, setCopied] = useState(false);
@@ -178,11 +179,14 @@ export default function App() {
     triggerFlash();
     
     setTimeout(() => {
-      const prompt = `${description.trim()}. ${SETTINGS_SUFFIX}`;
+      let prompt = `${description.trim()}. ${SETTINGS_SUFFIX}`;
+      if (negativePrompt.trim()) {
+        prompt += ` --no ${negativePrompt.trim()}`;
+      }
       setGeneratedPrompt(prompt);
       setIsGenerating(false);
     }, 600);
-  }, [description]);
+  }, [description, negativePrompt]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,9 +202,12 @@ export default function App() {
       
       try {
         const base64Data = base64.split(',')[1];
-        const rawDescription = await analyzeImage(base64Data, file.type);
+        const rawDescription = await analyzeImage(base64Data, file.type, negativePrompt);
         setDescription(rawDescription);
-        const finalPrompt = `${rawDescription.trim()}. ${SETTINGS_SUFFIX}`;
+        let finalPrompt = `${rawDescription.trim()}. ${SETTINGS_SUFFIX}`;
+        if (negativePrompt.trim()) {
+          finalPrompt += ` --no ${negativePrompt.trim()}`;
+        }
         setGeneratedPrompt(finalPrompt);
         triggerFlash();
       } catch (error) {
@@ -396,8 +403,32 @@ export default function App() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe a messy kitchen, a crowded station, or a blurry mirror selfie..."
-                    className="w-full h-48 bg-transparent border-none outline-none resize-none text-3xl font-light tracking-tight leading-tight placeholder:text-black/5 dark:placeholder:text-white/5 focus:ring-0 custom-scrollbar text-[var(--text-primary)]"
+                    className="w-full h-40 bg-transparent border-none outline-none resize-none text-3xl font-light tracking-tight leading-tight placeholder:text-black/5 dark:placeholder:text-white/5 focus:ring-0 custom-scrollbar text-[var(--text-primary)]"
                   />
+                </motion.div>
+
+                {/* Negative Prompt Field */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex flex-col gap-4 mt-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-red-500/60 uppercase tracking-[0.4em]">Negative Constraints</span>
+                    <div className="flex-1 h-px bg-red-500/5" />
+                  </div>
+                  <div className="relative group/negative">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-red-500/30 group-focus-within/negative:text-red-500/60 transition-colors">
+                      <Zap className="w-3 h-3" />
+                    </div>
+                    <input
+                      type="text"
+                      value={negativePrompt}
+                      onChange={(e) => setNegativePrompt(e.target.value)}
+                      placeholder="EXCLUDE: blur, people, saturation, bright light..."
+                      className="w-full bg-red-500/[0.02] border border-red-500/10 hover:border-red-500/20 focus:border-red-500/40 rounded-xl py-3 pl-10 pr-4 text-xs font-mono text-[var(--text-primary)] transition-all outline-none"
+                    />
+                  </div>
                 </motion.div>
                 
                 <div className="flex flex-col gap-4">

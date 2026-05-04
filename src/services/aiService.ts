@@ -13,9 +13,13 @@ function getAI() {
   return aiInstance;
 }
 
-export async function analyzeImage(base64Data: string, mimeType: string): Promise<string> {
+export async function analyzeImage(base64Data: string, mimeType: string, negativePrompt?: string): Promise<string> {
   try {
     const ai = getAI();
+    const negativeInstruction = negativePrompt && negativePrompt.trim() 
+      ? `\n\nNEGATIVE CONSTRAINTS (EXCLUDE THESE): ${negativePrompt.trim()}` 
+      : "";
+
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -27,15 +31,17 @@ export async function analyzeImage(base64Data: string, mimeType: string): Promis
             },
           },
           {
-            text: "Act as a specialized 'Lumen Nano' (formerly Nano Banana) photography prompt engineer. Your goal is to reverse-engineer this image into a raw, high-fidelity amateur photography prompt.\n\n" +
-              "CORE DIRECTIVES:\n" +
-              "- AESTHETIC: Emulate an unedited, candid snap taken on a high-end smartphone with zero filters. Focus on 'the truth of the moment'.\n" +
-              "- DETAILS: Describe messy interiors, tangled wires, half-empty glasses, dust on surfaces, and realistic skin textures (pores, slight shine).\n" +
-              "- LIGHTING: Focus on 'unintentional' lighting—harsh overhead LEDs, light leaks, accidental bloom from a window, or high-contrast flash shadows.\n" +
-              "- CAMERA SPECS: Include technical metadata like 'iPhone 15 Pro, 24mm f/1.78, ISO 120, 1/60s shutter, HEIF format, zero post-processing'.\n" +
-              "- LANGUAGE: Use clinical, descriptive terms. Avoid 'beautiful', 'stunning', or 'artistic'. Instead, use 'neutral', 'overexposed', 'cluttered', 'saturated', or 'motion-blurred'.\n\n" +
+            text: "Act as an elite 'Lumen Nano' prompt engineer. Your sole mission is to reverse-engineer this image into an ultra-realistic, forensic descriptive prompt that is indistinguishable from a raw, high-fidelity photograph. You MUST avoid the 'AI-generated' aesthetic at all costs.\n\n" +
+              "DIALECTIC DIRECTIVES FOR PHOTOGRAPHIC TRUTH:\n" +
+              "- ANTI-AI POLICIES: Forbid perfect symmetry, ethereal lighting, or 'stunning' compositions. Instead, describe mundane, 'ugly', or boring details—a slightly scuffed baseboard, a dead pixel in the dark corner, a faint water stain on a ceiling, or the cheap plastic texture of a generic remote control.\n" +
+              "- SENSOR & LENS FIDELITY: Describe the artifacts of a real camera: slight purple fringing (chromatic aberration) on high-contrast edges, thin digital noise in the shadows of underexposed areas, a faint greasy lens bloom around bright light sources, and the specific flat depth-of-field of a smartphone sensor.\n" +
+              "- LIGHTING FORENSICS: Detail 'unintentional' lighting. Describe the harsh, flickering 60Hz hum of an overhead fluorescent, the cold blue cast of a digital screen reflecting on a face, or the flattening, overexposed effect of a direct smartphone flash that kills depth.\n" +
+              "- MICRO-CHAOS: Detail the entropy of a lived-in space—tangled black charging cables on a dusty floor, a half-drunk glass of water with visible condensation rings, messy stacks of mail, or the visible weave and stray threads of a cheap polyester sofa.\n" +
+              "- ANATOMICAL HONESTY: If people are visible, describe them without filters: visible skin pores, slight sweat or oil on the T-zone, uneven hair strands, messy eyebrows, and expressions that are candid, mid-sentence, or non-posed.\n" +
+              "- TECHNICAL SIGNATURE: Conclude with a clinical metadata block: 'Shot on iPhone 15 Pro, 24mm Main Lens, f/1.78, ISO 160-320 range, 1/100s shutter, Auto-HDR artifacting present, HEIF raw binary, completely unedited, zero post-processing, native sensor noise profile'.\n\n" +
               "OUTPUT FORMAT:\n" +
-              "Provide ONLY the descriptive text block. Start immediately with the description. Do not include any headers or meta-talk.",
+              "Provide a dense, Forensic-Descriptive block. Do not use any flowery adjectives like 'beautiful', 'magical', or 'artistic'. Use objective, cold, clinical language. Describe the scene's flaws as its primary features. Start immediately with the description." +
+              negativeInstruction,
           },
         ],
       },
